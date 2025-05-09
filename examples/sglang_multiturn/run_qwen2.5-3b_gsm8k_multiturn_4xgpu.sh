@@ -5,8 +5,17 @@ set -x
 export HYDRA_FULL_ERROR=1
 ulimit -n 65535
 
-PROJECT_DIR="$(pwd)"
-CONFIG_PATH="$PROJECT_DIR/examples/sglang_multiturn/config"
+# 确保配置路径正确，避免路径重复
+# 检查当前目录是否已经包含examples/sglang_multiturn
+if [[ "$(pwd)" == */examples/sglang_multiturn ]]; then
+    # 如果当前目录已经是examples/sglang_multiturn，则直接使用config
+    PROJECT_DIR="$(pwd)"
+    CONFIG_PATH="$PROJECT_DIR/config"
+else
+    # 如果当前目录是项目根目录，则使用完整路径
+    PROJECT_DIR="$(pwd)"
+    CONFIG_PATH="$PROJECT_DIR/examples/sglang_multiturn/config"
+fi
 
 python3 -m verl.trainer.main_ppo \
     --config-path="$CONFIG_PATH" \

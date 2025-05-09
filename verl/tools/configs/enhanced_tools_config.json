@@ -1,0 +1,14 @@
+{
+    "enhanced_gsm8k_tool": {
+        "tool_selection_weight": 0.2,
+        "parameter_weight": 0.3,
+        "interpretation_weight": 0.2,
+        "correctness_weight": 0.5,
+        "dynamic_reward": true,
+        "early_phase": 30,
+        "middle_phase": 100,
+        "initial_scale": 0.5,
+        "mid_scale": 0.8,
+        "full_scale": 1.0
+    }
+}

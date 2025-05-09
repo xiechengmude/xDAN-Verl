@@ -1,0 +1,29 @@
+tools:
+  - class_name: verl.tools.enhanced_gsm8k_tool.EnhancedGsm8kTool
+    config:
+      tool_selection_weight: 0.2
+      parameter_weight: 0.3
+      interpretation_weight: 0.2
+      correctness_weight: 0.5
+      dynamic_reward: true
+      early_phase: 30
+      middle_phase: 100
+      initial_scale: 0.5
+      mid_scale: 0.8
+      full_scale: 1.0
+    tool_schema:
+      type: function
+      function:
+        name: calc_gsm8k_reward
+        description: 一个用于计算GSM8K问题答案正确性的工具
+        parameters:
+          type: object
+          properties:
+            answer:
+              type: string
+              description: 问题的答案
+            reasoning:
+              type: string
+              description: 解题推理过程
+          required:
+            - answer
