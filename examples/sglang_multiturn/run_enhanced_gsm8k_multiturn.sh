@@ -68,7 +68,7 @@ python3 -m verl.trainer.main_ppo \
     critic.forward_max_token_len_per_gpu=8192 \
     data.train_files=$HOME/data/gsm8k/train.parquet \
     data.val_files=$HOME/data/gsm8k/test.parquet \
-    actor_rollout_ref.rollout.multi_turn.tool_config_path="$PROJECT_DIR/examples/sglang_multiturn/configs/enhanced_gsm8k_tool.yaml" \
-    actor_rollout_ref.rollout.rollout_class=verl.workers.rollout.sglang_rollout.enhanced_async_sglang_rollout.EnhancedAsyncSGLangRollout \
-    actor_rollout_ref.rollout.rollout_request_class=verl.workers.rollout.enhanced_schemas.EnhancedAsyncRolloutRequest \
+    +actor_rollout_ref.rollout.multi_turn.tool_config_path="$PROJECT_DIR/examples/sglang_multiturn/configs/enhanced_gsm8k_tool.yaml" \
+    +actor_rollout_ref.rollout.rollout_class=verl.workers.rollout.sglang_rollout.enhanced_async_sglang_rollout.EnhancedAsyncSGLangRollout \
+    +actor_rollout_ref.rollout.rollout_request_class=verl.workers.rollout.enhanced_schemas.EnhancedAsyncRolloutRequest \
     $@
