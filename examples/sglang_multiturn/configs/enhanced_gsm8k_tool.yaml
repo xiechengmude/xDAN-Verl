@@ -1,4 +1,5 @@
 tools:
+  # 增强版GSM8K工具
   - class_name: verl.tools.enhanced_gsm8k_tool.EnhancedGsm8kTool
     config:
       tool_selection_weight: 0.2
@@ -27,3 +28,134 @@ tools:
               description: 解题推理过程
           required:
             - answer
+  
+  # 基础计算器工具
+  - class_name: verl.tools.enhanced_calculator_tool.EnhancedCalculatorTool
+    config:
+      tool_selection_weight: 0.2
+      parameter_weight: 0.3
+      interpretation_weight: 0.2
+      correctness_weight: 0.5
+      dynamic_reward: true
+      early_phase: 30
+      middle_phase: 100
+      initial_scale: 0.5
+      mid_scale: 0.8
+      full_scale: 1.0
+    tool_schema:
+      type: function
+      function:
+        name: basic_calculator
+        description: 一个用于执行基本四则运算的计算器工具
+        parameters:
+          type: object
+          properties:
+            expression:
+              type: string
+              description: 要计算的数学表达式，支持加减乘除和括号，如 '3 + 4 * (2 - 1)'
+          required:
+            - expression
+  
+  # SymPy代数工具
+  - class_name: verl.tools.enhanced_sympy_tool.EnhancedSympyTool
+    config:
+      tool_selection_weight: 0.2
+      parameter_weight: 0.3
+      interpretation_weight: 0.2
+      correctness_weight: 0.5
+      dynamic_reward: true
+      early_phase: 30
+      middle_phase: 100
+      initial_scale: 0.5
+      mid_scale: 0.8
+      full_scale: 1.0
+    tool_schema:
+      type: function
+      function:
+        name: sympy_algebra
+        description: 一个用于符号计算和代数运算的工具，可以解方程、化简表达式等
+        parameters:
+          type: object
+          properties:
+            operation:
+              type: string
+              description: 要执行的操作类型，可选值：solve（解方程）、simplify（化简表达式）、expand（展开表达式）、factor（因式分解）
+              enum: ["solve", "simplify", "expand", "factor"]
+            expression:
+              type: string
+              description: 要处理的数学表达式或方程，如 'x**2 + 2*x + 1 = 0' 或 '(x+1)**2'
+            variables:
+              type: string
+              description: 变量名列表，多个变量用逗号分隔，如 'x' 或 'x,y,z'
+          required:
+            - operation
+            - expression
+  
+  # Python执行工具
+  - class_name: verl.tools.enhanced_python_executor_tool.EnhancedPythonExecutorTool
+    config:
+      tool_selection_weight: 0.2
+      parameter_weight: 0.3
+      interpretation_weight: 0.2
+      correctness_weight: 0.5
+      dynamic_reward: true
+      early_phase: 30
+      middle_phase: 100
+      initial_scale: 0.5
+      mid_scale: 0.8
+      full_scale: 1.0
+      execution_timeout: 5
+      max_output_length: 1000
+    tool_schema:
+      type: function
+      function:
+        name: python_executor
+        description: 一个用于执行Python代码解决问题的工具
+        parameters:
+          type: object
+          properties:
+            code:
+              type: string
+              description: 要执行的Python代码，可以包含多行代码块
+            explanation:
+              type: string
+              description: 对代码的解释说明
+          required:
+            - code
+  
+  # NumPy数学工具
+  - class_name: verl.tools.enhanced_numpy_tool.EnhancedNumpyTool
+    config:
+      tool_selection_weight: 0.2
+      parameter_weight: 0.3
+      interpretation_weight: 0.2
+      correctness_weight: 0.5
+      dynamic_reward: true
+      early_phase: 30
+      middle_phase: 100
+      initial_scale: 0.5
+      mid_scale: 0.8
+      full_scale: 1.0
+      execution_timeout: 5
+      max_output_length: 1000
+    tool_schema:
+      type: function
+      function:
+        name: numpy_math
+        description: 一个用于处理数组、矩阵计算和高级数学函数的工具
+        parameters:
+          type: object
+          properties:
+            operation:
+              type: string
+              description: 要执行的操作类型，可选值：array_creation（创建数组）、matrix_operation（矩阵运算）、statistics（统计计算）、linear_algebra（线性代数）
+              enum: ["array_creation", "matrix_operation", "statistics", "linear_algebra"]
+            data:
+              type: string
+              description: 要处理的数据，可以是数组、矩阵或其他数据结构的字符串表示，如 '[1, 2, 3]' 或 '[[1, 2], [3, 4]]'
+            code:
+              type: string
+              description: 要执行的NumPy代码片段，如 'np.mean(arr)' 或 'np.dot(A, B)'
+          required:
+            - operation
+            - data

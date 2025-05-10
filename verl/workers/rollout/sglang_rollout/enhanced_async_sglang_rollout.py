@@ -56,7 +56,7 @@ class EnhancedAsyncSGLangRollout(AsyncSGLangRollout):
         
         current_turns = 0
         while current_turns < self.config.multi_turn.max_turns:
-            if _req.state == AsyncRolloutRequest.StateEnum.PENDING:
+            if _req.state == AsyncRolloutRequestStateEnum.PENDING:
                 if _req.tools is not None:
                     tool_creation_coroutines = []
                     for tool_schema in _req.tools:
@@ -69,8 +69,8 @@ class EnhancedAsyncSGLangRollout(AsyncSGLangRollout):
                             
                         tool_creation_coroutines.append(tool.create(_req.request_id, **create_kwargs))
                     await asyncio.gather(*tool_creation_coroutines)
-                _req.state = AsyncRolloutRequest.StateEnum.RUNNING
-            elif _req.state == AsyncRolloutRequest.StateEnum.TOOL_CALLING:
+                _req.state = AsyncRolloutRequestStateEnum.RUNNING
+            elif _req.state == AsyncRolloutRequestStateEnum.TOOL_CALLING:
                 if _req.messages[-1].tool_calls is not None:
                     parsed_tool_calls = _req.messages[-1].tool_calls
                     tool_call_results = await asyncio.gather(
@@ -97,10 +97,10 @@ class EnhancedAsyncSGLangRollout(AsyncSGLangRollout):
                     if len(_req.input_ids) >= self.config.max_model_len:
                         finish_reason_type = FinishReasonTypeEnum.STOP
                         break
-                    _req.state = AsyncRolloutRequest.StateEnum.RUNNING
+                    _req.state = AsyncRolloutRequestStateEnum.RUNNING
                 else:
                     raise ValueError(f"Unexpected tool calling last message state: {_req.messages[-1]}")
-            elif _req.state == AsyncRolloutRequest.StateEnum.RUNNING:
+            elif _req.state == AsyncRolloutRequestStateEnum.RUNNING:
                 generation_prompt = _req.get_generation_prompt(self.tokenizer)
                 if not do_sample:
                     kwargs = dict(
@@ -144,7 +144,7 @@ class EnhancedAsyncSGLangRollout(AsyncSGLangRollout):
                 else:
                     if self._function_call_parser and self._function_call_parser.has_tool_call(content):
                         finish_reason_type = FinishReasonTypeEnum.TOOL_CALL
-                        _req.state = AsyncRolloutRequest.StateEnum.TOOL_CALLING
+                        _req.state = AsyncRolloutRequestStateEnum.TOOL_CALLING
                         try:
                             normed_content, tool_calls = self._function_call_parser.parse_non_stream(content)
                         except JSONDecodeError:
@@ -170,7 +170,7 @@ class EnhancedAsyncSGLangRollout(AsyncSGLangRollout):
                         else:
                             _req.add_assistant_message(self.tokenizer, content, format=self.config.multi_turn.format)
                             finish_reason_type = FinishReasonTypeEnum.STOP
-                            _req.state = AsyncRolloutRequest.StateEnum.COMPLETED
+                            _req.state = AsyncRolloutRequestStateEnum.COMPLETED
                             break
                     else:
                         _req.add_assistant_message(self.tokenizer, content, format=self.config.multi_turn.format)

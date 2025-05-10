@@ -52,7 +52,7 @@ class EnhancedAsyncRolloutRequest(AsyncRolloutRequest):
             finish_reason_type: 完成原因类型
             tool_feedbacks: 工具反馈信息
         """
-        self.state = self.StateEnum.COMPLETED
+        self.state = AsyncRolloutRequestStateEnum.COMPLETED
         self.reward_scores = reward_scores
         
         # 保存工具反馈信息
