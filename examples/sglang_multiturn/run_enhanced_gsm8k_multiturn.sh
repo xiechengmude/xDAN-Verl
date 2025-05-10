@@ -14,17 +14,17 @@ export CUDA_VISIBLE_DEVICES=4,5,6,7
 if [[ "$(pwd)" == */examples/sglang_multiturn ]]; then
     # 如果当前目录已经是examples/sglang_multiturn，则直接使用config
     PROJECT_DIR="$(pwd)"
-    CONFIG_PATH="$PROJECT_DIR/configs"
+    CONFIG_PATH="$PROJECT_DIR/config"
 else
     # 如果当前目录是项目根目录，则使用完整路径
     PROJECT_DIR="$(pwd)"
-    CONFIG_PATH="$PROJECT_DIR/examples/sglang_multiturn/configs"
+    CONFIG_PATH="$PROJECT_DIR/examples/sglang_multiturn/config"
 fi
 
 # 运行增强版训练脚本
 python3 -m verl.trainer.main_ppo \
     --config-path="$CONFIG_PATH" \
-    --config-name='qwen2.5-3b_gsm8k_multiturn_4xgpu' \
+    --config-name='gsm8k_multiturn_grpo' \
     algorithm.adv_estimator=grpo \
     data.train_batch_size=256 \
     data.max_prompt_length=1024 \
@@ -68,7 +68,7 @@ python3 -m verl.trainer.main_ppo \
     critic.forward_max_token_len_per_gpu=8192 \
     data.train_files=$HOME/data/gsm8k/train.parquet \
     data.val_files=$HOME/data/gsm8k/test.parquet \
-    actor_rollout_ref.rollout.multi_turn.tool_config_path="$CONFIG_PATH/enhanced_gsm8k_tool.yaml" \
+    actor_rollout_ref.rollout.multi_turn.tool_config_path="$PROJECT_DIR/examples/sglang_multiturn/configs/enhanced_gsm8k_tool.yaml" \
     actor_rollout_ref.rollout.rollout_class=verl.workers.rollout.sglang_rollout.enhanced_async_sglang_rollout.EnhancedAsyncSGLangRollout \
     actor_rollout_ref.rollout.rollout_request_class=verl.workers.rollout.enhanced_schemas.EnhancedAsyncRolloutRequest \
     $@
