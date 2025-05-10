@@ -1,15 +1,74 @@
 #!/bin/bash
 
+# 运行在多个GPU上
+set -x
+export HYDRA_FULL_ERROR=1
+ulimit -n 65535
+
 # 设置训练参数
 export PYTHONPATH=/data/vayu/train/xDAN-Verl
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=4,5,6,7
+
+# 确保配置路径正确，避免路径重复
+# 检查当前目录是否已经包含examples/sglang_multiturn
+if [[ "$(pwd)" == */examples/sglang_multiturn ]]; then
+    # 如果当前目录已经是examples/sglang_multiturn，则直接使用config
+    PROJECT_DIR="$(pwd)"
+    CONFIG_PATH="$PROJECT_DIR/configs"
+else
+    # 如果当前目录是项目根目录，则使用完整路径
+    PROJECT_DIR="$(pwd)"
+    CONFIG_PATH="$PROJECT_DIR/examples/sglang_multiturn/configs"
+fi
 
 # 运行增强版训练脚本
-python -m verl.train.train_rl \
-    --config-path=examples/sglang_multiturn/configs \
-    --config-name=qwen2.5-3b_gsm8k_multiturn_4xgpu \
-    multi_turn.tool_config_path=examples/sglang_multiturn/configs/enhanced_gsm8k_tool.yaml \
-    rollout_class=verl.workers.rollout.sglang_rollout.enhanced_async_sglang_rollout.EnhancedAsyncSGLangRollout \
-    rollout_request_class=verl.workers.rollout.enhanced_schemas.EnhancedAsyncRolloutRequest \
-    output_dir=outputs/enhanced_gsm8k_multiturn \
-    wandb.name=enhanced_gsm8k_multiturn
+python3 -m verl.trainer.main_ppo \
+    --config-path="$CONFIG_PATH" \
+    --config-name='qwen2.5-3b_gsm8k_multiturn_4xgpu' \
+    algorithm.adv_estimator=grpo \
+    data.train_batch_size=256 \
+    data.max_prompt_length=1024 \
+    data.max_response_length=1024 \
+    data.filter_overlong_prompts=True \
+    data.truncation='error' \
+    data.return_raw_chat=True \
+    actor_rollout_ref.model.path=Qwen/Qwen2.5-3B-Instruct \
+    actor_rollout_ref.actor.optim.lr=1e-6 \
+    actor_rollout_ref.model.use_remove_padding=True \
+    actor_rollout_ref.actor.ppo_mini_batch_size=256 \
+    actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=32 \
+    actor_rollout_ref.actor.use_kl_loss=True \
+    actor_rollout_ref.actor.kl_loss_coef=0.001 \
+    actor_rollout_ref.actor.kl_loss_type=low_var_kl \
+    actor_rollout_ref.actor.entropy_coeff=0 \
+    actor_rollout_ref.model.enable_gradient_checkpointing=True \
+    actor_rollout_ref.actor.fsdp_config.param_offload=False \
+    actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+    actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=32 \
+    actor_rollout_ref.rollout.tensor_model_parallel_size=2 \
+    actor_rollout_ref.rollout.name=sglang_async \
+    actor_rollout_ref.rollout.gpu_memory_utilization=0.5 \
+    actor_rollout_ref.rollout.n=16 \
+    actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=32 \
+    actor_rollout_ref.ref.fsdp_config.param_offload=True \
+    algorithm.use_kl_in_reward=False \
+    trainer.critic_warmup=0 \
+    trainer.logger=['console','wandb'] \
+    trainer.project_name='enhanced_gsm8k_async_rl' \
+    trainer.experiment_name='enhanced-multi-tool-selection' \
+    trainer.n_gpus_per_node=4 \
+    trainer.nnodes=1 \
+    trainer.save_freq=-1 \
+    trainer.test_freq=20 \
+    trainer.total_epochs=15 \
+    actor_rollout_ref.actor.ppo_max_token_len_per_gpu=8192 \
+    actor_rollout_ref.rollout.log_prob_max_token_len_per_gpu=8192 \
+    actor_rollout_ref.ref.log_prob_max_token_len_per_gpu=8192 \
+    critic.ppo_max_token_len_per_gpu=8192 \
+    critic.forward_max_token_len_per_gpu=8192 \
+    data.train_files=$HOME/data/gsm8k/train.parquet \
+    data.val_files=$HOME/data/gsm8k/test.parquet \
+    actor_rollout_ref.rollout.multi_turn.tool_config_path="$CONFIG_PATH/enhanced_gsm8k_tool.yaml" \
+    actor_rollout_ref.rollout.rollout_class=verl.workers.rollout.sglang_rollout.enhanced_async_sglang_rollout.EnhancedAsyncSGLangRollout \
+    actor_rollout_ref.rollout.rollout_request_class=verl.workers.rollout.enhanced_schemas.EnhancedAsyncRolloutRequest \
+    $@
